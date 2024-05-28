@@ -18,7 +18,7 @@
 Tool chain: `./recompile.sh && ./build-img.sh && ./run.sh`
 
 ## Kernel
-64-bit simple hobby kernel written in C for educational purpose and fun.
+64-bit simple hobby kernel written in C++ for educational purpose and fun.
 ![Kernel info](_img/kernel-1.png)
 
 ### Features
@@ -31,10 +31,11 @@ Tool chain: `./recompile.sh && ./build-img.sh && ./run.sh`
 - [x] Virtual memory - 64-bit paging
 - [x] IDT - basic interrupts
 - [x] Very basic libc (it will be written further if needed)
-- [x] Kernel panic screen
+- [x] Kernel panic && asserts
 - [x] ACPI support
 - [X] Local APIC and I/O APIC support
 - [X] High Precision Event Timer (HPET): one-shot and periodic mode
+- [ ] Heap (kmalloc)
 - [ ] All x86 exceptions
 - [ ] Uniprocessor multitasking
 - [ ] User mode
@@ -55,7 +56,7 @@ My GNU-EFI (UEFI) bootloader written in C for fun and education.
 - [x] Error checking
 - [x] Jumping into kernel
 
-### Abbreviations in the comments
+### Documentation & specifications abbreviations used in comments
 
 - IM3 - Intel Manual, vol. 3
 - EFI - UEFI Specification

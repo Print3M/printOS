@@ -10,8 +10,8 @@ void __printf(const char *str, va_list args) {
 	char temp_buf[64]; // 8*8 = 64 bits + 9th byte for '\0';
 	memset(temp_buf, 0, 64);
 
-	size len = str_len((char *) str);
-	size temp_len = 0;
+	size len		= str_len((char *) str);
+	size temp_len	= 0;
 	bool is_percent = false; // %x notation detector
 
 	u16 j = 0;
@@ -22,7 +22,7 @@ void __printf(const char *str, va_list args) {
 					// If %s
 					// Get next argument
 					char *arg = va_arg(args, char *);
-					temp_len = str_len(arg);
+					temp_len  = str_len(arg);
 
 					// Add string to result buffer
 					memcpy((void *) (buf + j), (void *) arg, temp_len);
@@ -122,12 +122,23 @@ void kprint_cpu_info(void) {
 	kprintf("\t - hyperthreading: %d \n", devices.cpu.hyperthreading);
 }
 
-void kpanic(const char *msg) {
+void __prepare_kpanic() {
 	kernel.framebuffer->set_all_pixels(BLUE);
 	kernel.console->cursor.gotoxy(0, 0);
 	kernel.console->cursor.set_bg(BLUE);
 	kernel.console->cursor.set_fg(WHITE);
+	kprintf("===== Kernel panic ===== \n");
+}
 
-	kprintf("Kernel panic!!! \n");
+void kpanic(const char *msg) {
+	__prepare_kpanic();
 	kprintf("Error: %s", msg);
+}
+
+void kpanic(const char *msg, char const *file, size line, char const *func) {
+	__prepare_kpanic();
+	kprintf("Message: %s\n", msg);
+	kprintf("File: %s\n", file);
+	kprintf("Line: %d\n", line);
+	kprintf("Func: %s\n", func);
 }

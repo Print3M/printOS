@@ -9,8 +9,10 @@
 #include <gdt/gdt.hpp>
 #include <idt/idt.hpp>
 #include <kernel.hpp>
+#include <kutils/assertions.hpp>
 #include <kutils/bitmap.hpp>
 #include <kutils/console.hpp>
+#include <memory/heap.hpp>
 #include <memory/mmap.hpp>
 #include <memory/paging.hpp>
 #include <memory/pmem.hpp>
@@ -21,6 +23,8 @@ KernelData kernel;
 DevicesInfo devices;
 
 extern "C" void _start(BootloaderData *bd) {
+	ASSERT(bd != nullptr);
+
 	kernel.stack	 = static_cast<void *>(bd);
 	kernel.acpi_rsdp = (acpi::RSDP *) bd->acpi_rsdp;
 
@@ -88,18 +92,18 @@ extern "C" void _start(BootloaderData *bd) {
 			kprint_succ("ACPI 2.0 detected");
 			break;
 		default:
-			kprint_err("unknown version of ACPI detected");
+			kpanic("Unknown version of ACPI detected");
 			break;
 	}
 
 	if (acpi::verify_rsdp() == false) {
-		kprint_err("RSDP not verified");
+		kpanic("RSDP not verified");
 	} else {
 		kprint_succ("RSDP verified");
 	}
 
 	if (acpi::sdt::verify_rsdt() == false) {
-		kprint_err("RSDT not verified");
+		kpanic("RSDT not verified");
 	} else {
 		kprint_succ("RSDT verified");
 	}
@@ -108,15 +112,21 @@ extern "C" void _start(BootloaderData *bd) {
 		MADT
 	*/
 	kernel.acpi_tables.madt = (madt::SDT_Table *) acpi::sdt::get_header(acpi::sdt::MADT_SIG);
+	ASSERT(kernel.acpi_tables.madt != nullptr);
+
 	kernel.acpi_tables.lapic =
 		(madt::ics::CPU_LAPIC_Struct *) madt::ics::get_header(madt::ics::CPU_LAPIC);
+	ASSERT(kernel.acpi_tables.lapic != nullptr);
+
 	kernel.acpi_tables.ioapic =
 		(madt::ics::IO_APIC_Struct *) madt::ics::get_header(madt::ics::IO_APIC);
+	ASSERT(kernel.acpi_tables.ioapic != nullptr);
 
 	/*
 		HPET
 	*/
 	kernel.acpi_tables.hpet = (hpet::SDT_Table *) acpi::sdt::get_header(acpi::sdt::HPET_SIG);
+	ASSERT(kernel.acpi_tables.hpet != nullptr);
 	kprint_succ("HPET initialization success");
 
 	/*
@@ -136,12 +146,30 @@ extern "C" void _start(BootloaderData *bd) {
 	ioapic::init();
 	lapic::init();
 
+	auto heap	 = Heap();
+	kernel.heap = &heap;
+	auto ptr1	 = (u8 *) kernel.heap->malloc(1);
+	*ptr1		 = 1;
+	kprintf("Allocated value: %d\n", *ptr1);
+	auto ptr2 = (u8 *) kernel.heap->malloc(1);
+	*ptr2	  = 2;
+	kprintf("Allocated value: %d\n", *ptr2);
+	auto ptr3 = (u8 *) kernel.heap->malloc(1);
+	*ptr3	  = 3;
+	kprintf("Allocated value: %d\n", *ptr3);
+	auto ptr4 = (u8 *) kernel.heap->malloc(1);
+	*ptr4	  = 4;
+	kprintf("Allocated value: %d\n", *ptr4);
+	auto ptr5 = (u8 *) kernel.heap->malloc(1);
+	*ptr5	  = 5;
+	kprintf("Allocated value: %d\n", *ptr5);
+
 	/*
 		Main timer
-	*/
 	hpet::init();
 	auto comp = hpet::comparator::Comparator(0);
 	comp.set_periodic(100);
+	*/
 
 	// Just in sake of debugging
 	for (u64 i = 0; i < 999999999999; i++) {

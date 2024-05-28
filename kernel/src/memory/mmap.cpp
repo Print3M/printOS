@@ -1,13 +1,16 @@
 #include <kernel.hpp>
+#include <kutils/assertions.hpp>
 #include <kutils/console.hpp>
 #include <libc/stdint.hpp>
 #include <memory/mmap.hpp>
 
 MemoryMap::MemoryMap(MemoryData &data) {
+	ASSERT(data.entries > 0);
+
 	this->__desc_sz = data.desc_sz;
 	this->__entries = data.entries;
 	this->__mmap_sz = data.mmap_sz;
-	this->mmap = data.mmap;
+	this->mmap		= data.mmap;
 }
 
 EfiMMapDesc *MemoryMap::get_desc(size idx) {
@@ -36,7 +39,7 @@ size MemoryMap::get_largest_free_seg(void **mem_seg) {
 			size seg_sz = desc->pages * PMemConsts::FRAME_SZ;
 
 			if (seg_sz > max_sz) {
-				max_sz = seg_sz;
+				max_sz	 = seg_sz;
 				*mem_seg = desc->paddr;
 			}
 		}
@@ -69,7 +72,7 @@ void MemoryMap::dbg_print_mmap() {
 
 bool MemoryMap::is_usable_memory(EfiMMapDesc *desc) {
 	// Check if EFI memory segment can be used by kernel. Only these memory
-	// segments can be reallocated!
+	// segments can be used as standard RAM!
 	return (desc->type == EfiMemoryType::EFI_CONVENTIONAL_MEMORY ||
 			desc->type == EfiMemoryType::EFI_BOOT_SERVICES_CODE ||
 			desc->type == EfiMemoryType::EFI_BOOT_SERVICES_DATA);

@@ -8,7 +8,9 @@
 #include <libc/stdint.hpp>
 #include <memory/pmem.hpp>
 
-enum PagingConsts { PAGE_SZ = PMemConsts::FRAME_SZ };
+enum PagingConsts {
+	PAGE_SZ = PMemConsts::FRAME_SZ
+};
 
 #define IA32_EFER 0xC0000080
 
@@ -33,72 +35,72 @@ enum PagingConsts { PAGE_SZ = PMemConsts::FRAME_SZ };
 
 struct __attribute__((packed)) PT_Entry {
 	// Description: IM3, Table 4-20
-	size present : 1;
-	size rw : 1;
-	size us : 1;
-	size pwt : 1;
-	size pcd : 1;
-	size a : 1;
-	size d : 1;
-	size pat : 1;
-	size g : 1;
-	size ignored1 : 3;
-	size page_addr : 32;
-	size reserved1 : 8;
-	size ignored3 : 7;
+	size present		: 1;
+	size rw				: 1;
+	size us				: 1;
+	size pwt			: 1;
+	size pcd			: 1;
+	size a				: 1;
+	size d				: 1;
+	size pat			: 1;
+	size g				: 1;
+	size ignored1		: 3;
+	size page_addr		: 32;
+	size reserved1		: 8;
+	size ignored3		: 7;
 	size protection_key : 4;
-	size xd : 1;
+	size xd				: 1;
 }; // PageTable
 
 struct __attribute__((packed)) PD_Entry {
 	// Description: IM3, Table 4-19
-	size present : 1;
-	size rw : 1;
-	size us : 1;
-	size pwt : 1;
-	size pcd : 1;
-	size a : 1;
-	size ignored1 : 1;
-	size ps : 1;
-	size ignored2 : 4;
-	size pt_addr : 32;
+	size present   : 1;
+	size rw		   : 1;
+	size us		   : 1;
+	size pwt	   : 1;
+	size pcd	   : 1;
+	size a		   : 1;
+	size ignored1  : 1;
+	size ps		   : 1;
+	size ignored2  : 4;
+	size pt_addr   : 32;
 	size reserved1 : 8;
-	size ignored3 : 11;
-	size xd : 1;
+	size ignored3  : 11;
+	size xd		   : 1;
 }; // PageDirectory
 
 struct __attribute__((packed)) PDPT_Entry {
 	// Description: IM3, Table 4-17
-	size present : 1;
-	size rw : 1;
-	size us : 1;
-	size pwt : 1;
-	size pcd : 1;
-	size a : 1;
-	size ignored1 : 1;
-	size ps : 1;
-	size ignored2 : 4;
-	size pd_addr : 32;
+	size present   : 1;
+	size rw		   : 1;
+	size us		   : 1;
+	size pwt	   : 1;
+	size pcd	   : 1;
+	size a		   : 1;
+	size ignored1  : 1;
+	size ps		   : 1;
+	size ignored2  : 4;
+	size pd_addr   : 32;
 	size reserved1 : 8;
-	size ignored3 : 11;
-	size xd : 1;
+	size ignored3  : 11;
+	size xd		   : 1;
 }; // PageDirectoryPointerTable
 
 struct __attribute__((packed)) PML4_Entry {
 	// Description: IM3, Table 4-15
-	size present : 1;
-	size rw : 1;
-	size us : 1;
-	size pwt : 1;
-	size pcd : 1;
-	size a : 1;
-	size ignored1 : 1;
-	size ps : 1;
-	size ignored2 : 4;
+	size present   : 1;
+	size rw		   : 1;
+	size us		   : 1;
+	size pwt	   : 1;
+	size pcd	   : 1;
+	size a		   : 1;
+	size ignored1  : 1;
+	size ps		   : 1;
+	size ignored2  : 4;
 	size pdpt_addr : 32;
 	size reserved1 : 8;
-	size ignored3 : 11;
-	size xd : 1;
+	size ignored3  : 11;
+	size xd		   : 1;
 }; // PageMapLevel4
 
 class Paging {
@@ -107,11 +109,11 @@ class Paging {
 
   public:
 	Paging();
-	bool is_page_present(void *vaddr);
+	bool is_page_allocated(void *vaddr);
+	void allocate_page(void *vaddr, void *paddr);
 
   private:
-	void map_vaddr_to_paddr(void *vaddr, void *paddr);
-	void make_paging();
+	void init();
 	void __identity_paging(void *addr, size_t n);
 };
 
@@ -125,8 +127,8 @@ class PageIndexer {
   public:
 	const u16 &pml4 = __pml4;
 	const u16 &pdpt = __pdpt;
-	const u16 &pd = __pd;
-	const u16 &pt = __pt;
+	const u16 &pd	= __pd;
+	const u16 &pt	= __pt;
 
   public:
 	PageIndexer(u64 vaddr);

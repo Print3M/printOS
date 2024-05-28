@@ -48,17 +48,17 @@ MemoryData *get_memory_data(UINTN *mmap_key) {
 		print_efi_err(L"Allocating memory for memory data struct failed", status);
 	}
 
-	UINTN mmap_sz = 0;
-	UINTN descriptor_sz = 0;
+	UINTN mmap_sz				= 0;
+	UINTN descriptor_sz			= 0;
 	EFI_MEMORY_DESCRIPTOR *mmap = NULL;
 	if (get_memory_map(&mmap_sz, &mmap, mmap_key, &descriptor_sz) != EFI_SUCCESS) {
 		return NULL;
 	}
 
 	memory_data->descriptor_sz = descriptor_sz;
-	memory_data->map_sz = mmap_sz;
-	memory_data->memory_map = mmap;
-	memory_data->entries = mmap_sz / descriptor_sz;
+	memory_data->map_sz		   = mmap_sz;
+	memory_data->memory_map	   = mmap;
+	memory_data->entries	   = mmap_sz / descriptor_sz;
 
 	return memory_data;
 }
@@ -85,13 +85,12 @@ void start_kernel(EFI_HANDLE image_handle,
 		return;
 	}
 
-	UINTN mmap_key = 0;
+	UINTN mmap_key			= 0;
 	MemoryData *memory_data = get_memory_data(&mmap_key);
 	if (memory_data == NULL) {
 		print_err(L"Memory data gathering failed");
 		return;
 	}
-
 
 	// Exit boot services immediately after memory map gathering
 	EFI_STATUS status = BS->ExitBootServices(image_handle, mmap_key);
@@ -105,9 +104,9 @@ void start_kernel(EFI_HANDLE image_handle,
 	// !!!
 
 	BootloaderData bootloader_data = {.framebuffer = framebuffer,
-									  .font = psf_font,
-									  .memory = memory_data,
-									  .acpi_rsdp = acpi_rsdp};
+									  .font		   = psf_font,
+									  .memory	   = memory_data,
+									  .acpi_rsdp   = acpi_rsdp};
 
 	// Jump to kernel function
 	((kernel) kernel_addr)(&bootloader_data);

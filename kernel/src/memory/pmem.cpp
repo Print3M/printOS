@@ -1,4 +1,5 @@
 #include <kernel.hpp>
+#include <kutils/assertions.hpp>
 #include <kutils/bitmap.hpp>
 #include <kutils/console.hpp>
 #include <libc/stdint.hpp>
@@ -7,13 +8,15 @@
 #include <memory/pmem.hpp>
 
 Bitmap PMem::__init_bitmap() {
-	void *free_mem = nullptr;
+	void *free_mem	 = nullptr;
 	auto free_mem_sz = kernel.mmap->get_largest_free_seg(&free_mem);
+	ASSERT(free_mem_sz > 0);
 
 	auto page_frames = kernel.mmap->get_page_frames_number();
-	if (free_mem_sz < page_frames / 8) {
-		// TODO: ERROR: Space for bitmap is to small
-	}
+
+	ASSERT(page_frames > 0);
+	// ERROR: Space for bitmap is to small
+	ASSERT(free_mem_sz > page_frames / 8);
 
 	return Bitmap(free_mem, page_frames);
 }
@@ -29,9 +32,11 @@ PMem::PMem() {
 		also be locked. Therefore, the free frames number will be around 250 MB - the amount of
 		usable memory actually installed in the machine.
 	*/
-	this->__frames = kernel.mmap->get_page_frames_number();
-	this->__free_frames = this->__frames;
+	this->__frames		  = kernel.mmap->get_page_frames_number();
+	this->__free_frames	  = this->__frames;
 	this->__locked_frames = 0;
+
+	ASSERT(this->__frames > 0);
 
 	// Lock all frames at the beggining
 	for (size i = 0; i < this->__frames; i++) {
@@ -53,7 +58,10 @@ PMem::PMem() {
 		}
 	}
 
-	// !!! TODO: Lock frames with kernel itself !!!
+	// TODO: Lock frames with kernel itself !!!
+
+	// Lock NULL pointer
+	this->lock_frame(0);
 
 	// Lock frame with stack itself
 	auto stack_frame = this->ptr_to_frame_idx(kernel.stack);
@@ -64,6 +72,10 @@ PMem::PMem() {
 	for (size i = 0; i < this->__bitmap.get_mem_size() / PMemConsts::FRAME_SZ; i++) {
 		this->lock_frame(start_frame_idx + i);
 	}
+
+	ASSERT(this->locked_frames > 0);
+	ASSERT(this->free_frames > 0);
+	ASSERT(this->__bitmap.get(0) == true);
 }
 
 void PMem::free_frame(size idx) {
@@ -95,9 +107,7 @@ void *PMem::idx_to_frame_ptr(size idx) {
 }
 
 void *PMem::request_frame() {
-	if (this->__free_frames == 0) {
-		return nullptr;
-	}
+	ASSERT(this->__free_frames > 0);
 
 	for (size i = this->__last_free_idx; i < this->__frames; i++) {
 		if (this->__bitmap.get(i) == false) {

@@ -9,7 +9,7 @@
 namespace hpet::comparator {
 
 Comparator::Comparator(u8 timer_id) : __id(timer_id){
-	VERIFY(g_clk_period_ns != 0);
+	ASSERT(g_clk_period_ns != 0);
 };
 
 void *Comparator::get_compar_reg_ptr(u64 reg) {

@@ -2,6 +2,7 @@
 #include <acpi/hpet/hpet.hpp>
 #include <cpu/cpu.hpp>
 #include <kernel.hpp>
+#include <kutils/assertions.hpp>
 #include <kutils/bits.hpp>
 #include <kutils/console.hpp>
 #include <libc/stdint.hpp>
@@ -45,7 +46,7 @@ PageIndexer::PageIndexer(u64 vaddr) {
 	this->__pd = vaddr & BITS_9_MASK;	// PageDirectory entry
 	vaddr >>= 9;						// -
 	this->__pdpt = vaddr & BITS_9_MASK; // PageDirectoryPointerTable entry
-	vaddr >>= 9;						//
+	vaddr >>= 9;						// - 
 	this->__pml4 = vaddr & BITS_9_MASK; // PageMapLevel4 entry
 }
 
@@ -68,15 +69,15 @@ Paging::Paging() {
 	// Set IA32_EFER.LME bit
 	u64 msr = cpu::read_msr(IA32_EFER);
 	cpu::write_msr(IA32_EFER, set_bit(msr, EFER_LME));
-	this->make_paging();
+	this->init();
 
 	// Load PML4 structure -> enable paging
 	set_cr3_register((u64) PML4, false, false);
 
 	// Test paging abilities
-	size test_addr = 0x99999999999; // Way more than physical memory
+	size test_addr	  = 0x99999999999; // Way more than physical memory
 	u8 *test_addr_ptr = (u8 *) test_addr;
-	this->map_vaddr_to_paddr((void *) test_addr, (void *) 0x0);
+	this->allocate_page((void *) test_addr, (void *) 0x0);
 	*test_addr_ptr = 123;
 
 	if (*test_addr_ptr != 123) {
@@ -84,7 +85,7 @@ Paging::Paging() {
 	}
 }
 
-bool Paging::is_page_present(void *vaddr) {
+bool Paging::is_page_allocated(void *vaddr) {
 	// Check if vaddr has its page present in the page table
 	auto index = PageIndexer((u64) vaddr);
 
@@ -99,20 +100,19 @@ bool Paging::is_page_present(void *vaddr) {
 		return false;
 	}
 
-	PD_Entry *PD = reinterpret_cast<PD_Entry *>(pdpt_entry->pd_addr << PAGE_OFFSET_BITS);
+	PD_Entry *PD	   = reinterpret_cast<PD_Entry *>(pdpt_entry->pd_addr << PAGE_OFFSET_BITS);
 	PD_Entry *pd_entry = &PD[index.pd];
 	if (pd_entry->present == false) {
 		return false;
 	}
 
-	PT_Entry *PT = reinterpret_cast<PT_Entry *>(pd_entry->pt_addr << PAGE_OFFSET_BITS);
+	PT_Entry *PT	   = reinterpret_cast<PT_Entry *>(pd_entry->pt_addr << PAGE_OFFSET_BITS);
 	PT_Entry *pt_entry = &PT[index.pt];
 	return pt_entry->present;
 }
 
-void Paging::map_vaddr_to_paddr(void *vaddr, void *paddr) {
+void Paging::allocate_page(void *vaddr, void *paddr) {
 	// Go down the paging-structure (by :vaddr) to the page and set its :paddr
-	// TODO: What if pmem_request_frame returns NULL
 	// TODO: What if pmem_request_frame returns addr higher than 44 bits (32 + PAGE_OFFSET)?
 
 	auto index = PageIndexer((u64) vaddr);
@@ -125,12 +125,13 @@ void Paging::map_vaddr_to_paddr(void *vaddr, void *paddr) {
 	if (pml4_entry->present == false) {
 		// If not already present, create PDPT
 		PDPT = (PDPT_Entry *) kernel.pmem->request_frame();
+		ASSERT(PDPT != nullptr);
 		memset(PDPT, 0, PagingConsts::PAGE_SZ);
 
 		// Set PML4 entry
 		pml4_entry->pdpt_addr = (u64) PDPT >> PAGE_OFFSET_BITS;
-		pml4_entry->present = true;
-		pml4_entry->rw = true;
+		pml4_entry->present	  = true;
+		pml4_entry->rw		  = true;
 	} else {
 		PDPT = reinterpret_cast<PDPT_Entry *>(pml4_entry->pdpt_addr << PAGE_OFFSET_BITS);
 	}
@@ -143,12 +144,13 @@ void Paging::map_vaddr_to_paddr(void *vaddr, void *paddr) {
 	if (pdpt_entry->present == false) {
 		// If PDPT entry not present, create PD and set PDPT entry
 		PD = (PD_Entry *) kernel.pmem->request_frame();
+		ASSERT(PD != nullptr);
 		memset(PD, 0, PagingConsts::PAGE_SZ);
 
 		// Set PDPT entry
 		pdpt_entry->pd_addr = (u64) PD >> PAGE_OFFSET_BITS;
 		pdpt_entry->present = true;
-		pdpt_entry->rw = true;
+		pdpt_entry->rw		= true;
 	} else {
 		PD = reinterpret_cast<PD_Entry *>((pdpt_entry->pd_addr << PAGE_OFFSET_BITS));
 	}
@@ -161,12 +163,13 @@ void Paging::map_vaddr_to_paddr(void *vaddr, void *paddr) {
 	if (pd_entry->present == false) {
 		// If PD entry not present, create PT and set PD entry
 		PT = (PT_Entry *) kernel.pmem->request_frame();
+		ASSERT(PT != nullptr);
 		memset(PT, 0, PagingConsts::PAGE_SZ);
 
 		// Set PD entry
 		pd_entry->pt_addr = (u64) PT >> PAGE_OFFSET_BITS;
 		pd_entry->present = true;
-		pd_entry->rw = true;
+		pd_entry->rw	  = true;
 	} else {
 		PT = reinterpret_cast<PT_Entry *>(pd_entry->pt_addr << PAGE_OFFSET_BITS);
 	}
@@ -174,13 +177,13 @@ void Paging::map_vaddr_to_paddr(void *vaddr, void *paddr) {
 	/*
 		PT
 	*/
-	PT_Entry *pt_entry = &PT[index.pt];
+	PT_Entry *pt_entry	= &PT[index.pt];
 	pt_entry->page_addr = (u64) paddr >> PAGE_OFFSET_BITS;
-	pt_entry->present = true;
-	pt_entry->rw = true;
+	pt_entry->present	= true;
+	pt_entry->rw		= true;
 }
 
-void Paging::make_paging() {
+void Paging::init() {
 	// Identity paging for the entire memory physically installed in the system.
 	// Just iterate over memory map and map every segment. Holes are not present
 	// in the memory map - only physically present memory.
@@ -189,16 +192,16 @@ void Paging::make_paging() {
 		this->__identity_paging(desc->paddr, PMemConsts::FRAME_SZ * desc->pages);
 	}
 
-	// Identy paging for framebuffer
+	// Identity paging for framebuffer
 	this->__identity_paging(kernel.framebuffer->get_address(), kernel.framebuffer->get_size());
 
-	// Identy paging for Local APIC
+	// Identity paging for Local APIC
 	this->__identity_paging(reinterpret_cast<void *>(kernel.acpi_tables.madt->lapic_addr), 4096);
 
-	// Identy paging for I/O APIC
+	// Identity paging for I/O APIC
 	this->__identity_paging(reinterpret_cast<void *>(kernel.acpi_tables.ioapic->io_apic_addr), 8);
 
-	// Identy paging for HPET
+	// Identity paging for HPET
 	this->__identity_paging(reinterpret_cast<void *>(kernel.acpi_tables.hpet->base_address.address),
 							hpet::get_mmio_sz());
 }
@@ -210,7 +213,7 @@ void Paging::__identity_paging(void *addr, size n) {
 	// :n    - number of bytes
 
 	for (size i = 0; i < (n / (PagingConsts::PAGE_SZ + 1)) + 1; i++) {
-		this->map_vaddr_to_paddr(addr, addr);
+		this->allocate_page(addr, addr);
 		addr = reinterpret_cast<void *>((size) addr + PagingConsts::PAGE_SZ);
 	}
 }
