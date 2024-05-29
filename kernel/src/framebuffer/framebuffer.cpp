@@ -1,6 +1,7 @@
 #include <framebuffer/framebuffer.hpp>
 #include <kernel.hpp>
 #include <libc/stdint.hpp>
+#include <kutils/assertions.hpp>
 
 Framebuffer::Framebuffer(FramebufferData &data) {
 	this->_addr = data.addr;
@@ -9,6 +10,8 @@ Framebuffer::Framebuffer(FramebufferData &data) {
 	this->_size = data.b_size;
 	this->_px_per_scan = data.px_per_scan;
 	this->_b_per_px = data.b_per_px;
+
+	ASSERT(this->_addr != nullptr);
 }
 
 void Framebuffer::set_pixel(u32 x, u32 y, u64 color) {

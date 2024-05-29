@@ -66,7 +66,7 @@ extern "C" void _start(BootloaderData *bd) {
 	} else {
 		kprint_succ("CPU state correct");
 	}
-	kprint_cpu_info();
+	// kprint_cpu_info();
 
 	/*
 		Global Description Table
@@ -146,12 +146,57 @@ extern "C" void _start(BootloaderData *bd) {
 	ioapic::init();
 	lapic::init();
 
-	auto heap	 = Heap();
+	auto heap	= Heap();
 	kernel.heap = &heap;
-	auto ptr1	 = (u8 *) kernel.heap->malloc(1);
-	*ptr1		 = 1;
+
+	kprint_pmem_info();
+	kernel.pmem->request_frames(200);
+	kprint_pmem_info();
+
+	// TODO: Request frames -> allocate pages (paging) -> kmalloc 
+
+	/*
+	auto ptr1 = kernel.heap->malloc(10);
+	auto ptr2 = kernel.heap->malloc(10);
+	auto ptr3 = kernel.heap->malloc(10);
+	auto ptr4 = kernel.heap->malloc(10);
+	auto ptr5 = kernel.heap->malloc(10);
+	auto ptr6 = kernel.heap->malloc(10);
+	auto ptr7 = kernel.heap->malloc(10);
+	auto ptr8 = kernel.heap->malloc(10);
+	kprintf("init: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr2);
+	kprintf("ptr2: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr3);
+	kprintf("ptr3: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr8);
+	kprintf("ptr8: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr6);
+	kprintf("ptr6: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr4);
+	kprintf("ptr4: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr1);
+	kprintf("ptr1: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr5);
+	kprintf("ptr5: ");
+	kprint_heap_info();
+	kernel.heap->free(ptr7);
+	kprintf("ptr7: ");
+	kprint_heap_info();
+	*/
+
+	/*
+	*ptr1		= 1;
 	kprintf("Allocated value: %d\n", *ptr1);
-	auto ptr2 = (u8 *) kernel.heap->malloc(1);
+	kernel.heap->free(ptr1);
+	auto ptr3 = (u8 *) kernel.heap->malloc(17);
 	*ptr2	  = 2;
 	kprintf("Allocated value: %d\n", *ptr2);
 	auto ptr3 = (u8 *) kernel.heap->malloc(1);
@@ -163,6 +208,7 @@ extern "C" void _start(BootloaderData *bd) {
 	auto ptr5 = (u8 *) kernel.heap->malloc(1);
 	*ptr5	  = 5;
 	kprintf("Allocated value: %d\n", *ptr5);
+	*/
 
 	/*
 		Main timer

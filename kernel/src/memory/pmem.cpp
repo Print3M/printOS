@@ -96,13 +96,13 @@ void PMem::lock_frame(size idx) {
 	}
 }
 
-size PMem::ptr_to_frame_idx(const void *ptr) {
+inline size PMem::ptr_to_frame_idx(const void *ptr) {
 	auto intptr = reinterpret_cast<size>(ptr);
 
 	return intptr / PMemConsts::FRAME_SZ;
 }
 
-void *PMem::idx_to_frame_ptr(size idx) {
+inline void *PMem::idx_to_frame_ptr(size idx) {
 	return reinterpret_cast<void *>(idx * PMemConsts::FRAME_SZ);
 }
 
@@ -119,4 +119,54 @@ void *PMem::request_frame() {
 	}
 
 	return nullptr;
+}
+
+void *PMem::request_frames(size number) {
+	ASSERT(number > 0);
+
+	size free_start_idx = 0;
+	size free_end_idx	= 0;
+
+	for (size i = this->__last_free_idx; i < this->__frames; i++) {
+
+		// Enough frames found, exit the loop
+		if (free_start_idx > 0 && i - free_start_idx == number) {
+			free_end_idx = i - 1;
+			break;
+		}
+
+		auto current_frame_state = this->__bitmap.get(i);
+
+		// Increment search state
+		if (free_start_idx > 0 && !current_frame_state) {
+			free_end_idx = i;
+			continue;
+		}
+
+		// Reset search state
+		if (current_frame_state) {
+			free_start_idx = 0;
+			continue;
+		}
+
+		// Init search state
+		if (free_start_idx == 0) {
+			free_start_idx = i;
+			free_end_idx   = i;
+			continue;
+		}
+	}
+
+	ASSERT(free_start_idx > 0);
+	ASSERT(free_end_idx > 0);
+	ASSERT(free_start_idx - free_end_idx >= number);
+
+	kprintf("%d, %d\n", free_start_idx, free_end_idx);
+
+	// Lock all frames
+	for (size i = free_start_idx; i <= free_end_idx; i++) {
+		this->lock_frame(i);
+	}
+
+	return this->idx_to_frame_ptr(free_start_idx);
 }

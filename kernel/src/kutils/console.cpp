@@ -1,9 +1,12 @@
 #include <kernel.hpp>
+#include <kutils/assertions.hpp>
 #include <libc/stdarg.hpp>
 #include <libc/stdint.hpp>
 #include <libc/stdlib.hpp>
 
 void __printf(const char *str, va_list args) {
+	ASSERT(kernel.console != nullptr);
+
 	// Dynamic list of arguments
 	char buf[4096]; // Buffer for result string
 	memset(buf, 0, 4096);
@@ -96,7 +99,7 @@ void kprint_info(const char *msg) {
 	kprintf("[*] Kernel info: %s \n", msg);
 }
 
-void kprint_pmem_info(void) {
+void kprint_pmem_info() {
 	kprint_info("physical memory info (provided by the UEFI Memory Map):");
 	kprintf("\t all: frames = %d, memory = %dMB (holes and MMIO included) \n",
 			kernel.pmem->frames,
@@ -109,7 +112,7 @@ void kprint_pmem_info(void) {
 			kernel.pmem->locked_frames * PMemConsts::FRAME_SZ / 1024 / 1024);
 }
 
-void kprint_cpu_info(void) {
+void kprint_cpu_info() {
 	kprint_info("CPU info:");
 	kprintf("\t - manufacturer:   %s \n", devices.cpu.manufacturer);
 	kprintf("\t - stepping id:    %d \n", devices.cpu.stepping_id);
@@ -120,6 +123,14 @@ void kprint_cpu_info(void) {
 	kprintf("\t - logical cores:  %d \n", devices.cpu.logical_cores);
 	kprintf("\t - physical cores: %d \n", devices.cpu.physical_cores);
 	kprintf("\t - hyperthreading: %d \n", devices.cpu.hyperthreading);
+}
+
+void kprint_heap_info() {
+	auto stats = kernel.heap->get_heap_stats();
+	kprintf("Heap blocks: all = %d, free = %d, allocated: %d\n",
+			stats.all_blocks,
+			stats.free_blocks,
+			stats.allocated_blocks);
 }
 
 void __prepare_kpanic() {
