@@ -149,13 +149,8 @@ extern "C" void _start(BootloaderData *bd) {
 	auto heap	= Heap();
 	kernel.heap = &heap;
 
-	kprint_pmem_info();
-	kernel.pmem->request_frames(200);
-	kprint_pmem_info();
+	// TODO: PS/2 keyboard driver
 
-	// TODO: Request frames -> allocate pages (paging) -> kmalloc 
-
-	/*
 	auto ptr1 = kernel.heap->malloc(10);
 	auto ptr2 = kernel.heap->malloc(10);
 	auto ptr3 = kernel.heap->malloc(10);
@@ -164,6 +159,7 @@ extern "C" void _start(BootloaderData *bd) {
 	auto ptr6 = kernel.heap->malloc(10);
 	auto ptr7 = kernel.heap->malloc(10);
 	auto ptr8 = kernel.heap->malloc(10);
+	auto ptr9 = kernel.heap->malloc(5000);
 	kprintf("init: ");
 	kprint_heap_info();
 	kernel.heap->free(ptr2);
@@ -190,25 +186,14 @@ extern "C" void _start(BootloaderData *bd) {
 	kernel.heap->free(ptr7);
 	kprintf("ptr7: ");
 	kprint_heap_info();
-	*/
+	kernel.heap->free(ptr9);
 
-	/*
-	*ptr1		= 1;
-	kprintf("Allocated value: %d\n", *ptr1);
-	kernel.heap->free(ptr1);
-	auto ptr3 = (u8 *) kernel.heap->malloc(17);
-	*ptr2	  = 2;
-	kprintf("Allocated value: %d\n", *ptr2);
-	auto ptr3 = (u8 *) kernel.heap->malloc(1);
-	*ptr3	  = 3;
-	kprintf("Allocated value: %d\n", *ptr3);
-	auto ptr4 = (u8 *) kernel.heap->malloc(1);
-	*ptr4	  = 4;
-	kprintf("Allocated value: %d\n", *ptr4);
-	auto ptr5 = (u8 *) kernel.heap->malloc(1);
-	*ptr5	  = 5;
-	kprintf("Allocated value: %d\n", *ptr5);
-	*/
+	auto hdr = reinterpret_cast<BlockHeader *>(ptr9 - sizeof(BlockHeader));
+	kprintf("Bytes: %d, next: %d, prev: %d, header: %d\n",
+			hdr->bytes,
+			hdr->next->bytes,
+			hdr->prev->bytes,
+			sizeof(BlockHeader));
 
 	/*
 		Main timer

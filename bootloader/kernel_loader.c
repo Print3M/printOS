@@ -6,7 +6,7 @@
 #include <elf.h>
 
 BOOLEAN verify_kernel_elf_header(Elf64_Ehdr *e_hdr) {
-	return memcmp(e_hdr->e_ident[EI_MAG0], ELFMAG, SELFMAG) == 0 &&
+	return memcmp((void *) (UINTN) e_hdr->e_ident[EI_MAG0], ELFMAG, SELFMAG) == 0 &&
 		   e_hdr->e_ident[EI_CLASS] == ELFCLASS64 && e_hdr->e_ident[EI_DATA] == ELFDATA2LSB &&
 		   e_hdr->e_type == ET_EXEC && e_hdr->e_machine == EM_X86_64 &&
 		   e_hdr->e_version == EV_CURRENT;
@@ -14,7 +14,7 @@ BOOLEAN verify_kernel_elf_header(Elf64_Ehdr *e_hdr) {
 
 EFI_STATUS get_elf_header(EFI_FILE *file, Elf64_Ehdr *e_hdr) {
 	EFI_STATUS status = EFI_SUCCESS;
-	UINTN e_hdr_size = sizeof(Elf64_Ehdr);
+	UINTN e_hdr_size  = sizeof(Elf64_Ehdr);
 
 	status = file->SetPosition(file, 0);
 	if (status != EFI_SUCCESS) {
@@ -31,7 +31,7 @@ EFI_STATUS get_elf_header(EFI_FILE *file, Elf64_Ehdr *e_hdr) {
 }
 
 EFI_STATUS get_elf_p_hdrs(EFI_FILE *file, Elf64_Ehdr *e_hdr, Elf64_Phdr **p_hdrs) {
-	EFI_STATUS status = EFI_SUCCESS;
+	EFI_STATUS status	= EFI_SUCCESS;
 	UINTN all_p_hdrs_sz = e_hdr->e_phentsize * e_hdr->e_phnum; // Size of all program headers
 
 	status = BS->AllocatePool(EfiLoaderData, all_p_hdrs_sz, (void **) p_hdrs);
@@ -60,7 +60,7 @@ EFI_STATUS load_elf_segment_by_p_hdr(EFI_FILE *file, Elf64_Phdr *p_hdr) {
 	EFI_STATUS status = EFI_SUCCESS;
 
 	// Allocate pages for segment at its physical address
-	UINT16 num_of_pages = (p_hdr->p_filesz / PAGE_SZ) + 1;
+	UINT16 num_of_pages		 = (p_hdr->p_filesz / PAGE_SZ) + 1;
 	Elf64_Addr segment_paddr = p_hdr->p_paddr;
 
 	status = BS->AllocatePages(AllocateAddress, EfiLoaderData, num_of_pages, &segment_paddr);
@@ -77,7 +77,7 @@ EFI_STATUS load_elf_segment_by_p_hdr(EFI_FILE *file, Elf64_Phdr *p_hdr) {
 	}
 
 	UINTN segment_file_sz = p_hdr->p_filesz;
-	status = file->Read(file, &segment_file_sz, (void *) segment_paddr);
+	status				  = file->Read(file, &segment_file_sz, (void *) segment_paddr);
 	if (status != EFI_SUCCESS) {
 		print_efi_err(L"Reading one of ELF's PT_LOAD segments failed", status);
 	}

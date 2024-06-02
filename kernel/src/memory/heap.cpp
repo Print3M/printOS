@@ -20,19 +20,11 @@ Heap::Heap() {
 	this->__blocks = block;
 }
 
-void Heap::__allocate_block(BlockHeader *block) {
-	if (block->is_free) {
-		block->is_free = false;
-	}
-}
-
 BlockHeader *Heap::__find_free_block(size bytes) {
 	auto block = this->__blocks;
 	ASSERT(block != nullptr);
 
 	do {
-		size block_addr = reinterpret_cast<u64>(block);
-
 		if (block->is_free && block->bytes >= bytes)
 			return block;
 
@@ -43,7 +35,7 @@ BlockHeader *Heap::__find_free_block(size bytes) {
 }
 
 inline void *get_block_data_addr(BlockHeader *block) {
-	return static_cast<void *>(block) + sizeof(BlockHeader);
+	return static_cast<void *>((u8 *) block + sizeof(BlockHeader));
 }
 
 inline size get_total_block_size(BlockHeader *block) {
@@ -62,70 +54,104 @@ inline bool are_blocks_contiguous(BlockHeader *block, BlockHeader *next_block) {
 	return reinterpret_cast<BlockHeader *>(addr) == next_block;
 }
 
+BlockHeader *Heap::__find_block_close_before_addr(void *addr) {
+	auto block				= this->__blocks;
+	size current_block_addr = 0;
+	size next_block_addr	= 0;
+	size find_block_addr	= reinterpret_cast<size>(addr);
+
+	while (block != nullptr) {
+
+		// Last block, there's no other chance
+		if (block->next == nullptr) {
+			return block;
+		}
+
+		current_block_addr = reinterpret_cast<size>(block);
+		next_block_addr	   = reinterpret_cast<size>(block->next);
+
+		// If the wanted address is between two blocks
+		if (current_block_addr < find_block_addr && next_block_addr < find_block_addr) {
+			return block;
+		}
+
+		block = block->next;
+	}
+
+	ASSERT(1 == 2);
+	return nullptr;
+}
+
 void *Heap::malloc(size bytes) {
-	// TODO:
-	// 		[] Allocate one physical page
-	//      [] Allocate couple physical pages
-
+	ASSERT(bytes > 0);
 	auto block = this->__find_free_block(bytes);
-	ASSERT(block != nullptr);
 
-	// No sufficient free block have been found
+	// No sufficient free block have been found.
+	// Allocate new pages, create new block and add it to linked-list of blocks.
 	if (block == nullptr) {
-		auto pages = (bytes / PagingConsts::PAGE_SZ) + 1;
+		auto pages		= (bytes / PagingConsts::PAGE_SZ) + 1;
+		auto init_block = kernel.pmem->request_frames(pages);
 
-		// Allocate more memory
-		kprintf("Allocate more memory!");
+		for (size i = 0; i < pages; i++) {
+			auto page = static_cast<void *>((u8 *) init_block + (i * PagingConsts::PAGE_SZ));
+			kernel.paging->allocate_page(page, page);
+		}
 
-		block;
+		block			 = reinterpret_cast<BlockHeader *>(init_block);
+		block->bytes	 = (pages * PagingConsts::PAGE_SZ) - sizeof(BlockHeader);
+		block->is_free	 = true;
+		auto prev_block	 = this->__find_block_close_before_addr(static_cast<void *>(block));
+		block->next		 = prev_block->next;
+		block->prev		 = prev_block;
+		prev_block->next = block;
 
+		if (block->next != nullptr) {
+			block->next->prev = block;
+		}
+
+		block = this->__find_free_block(bytes);
 		ASSERT(block != nullptr);
 	}
 
 	// Free block has exactly the amount of space that we want
 	// or the rest of the space is too small for further fragmentation
 	if (block->bytes == bytes || block->bytes - bytes <= sizeof(BlockHeader)) {
-		this->__allocate_block(block);
+		block->is_free = false;
 
 		return get_block_data_addr(block);
 	}
 
 	// Free block has way more free space than we want and it's ready
-	// to be fragmented
-	this->__allocate_block(block);
-	auto new_block	   = reinterpret_cast<BlockHeader *>(get_block_data_addr(block) + bytes);
+	// to be fragmented.
+	//
+	// Linked-list structure before:
+	// |          block           |     next    |
+	// After:
+	// |  block  |    new_block   |     next    |
+	block->is_free	   = false;
+	auto new_block	   = reinterpret_cast<BlockHeader *>((u8 *) get_block_data_addr(block) + bytes);
 	new_block->is_free = true;
-	new_block->prev	   = block;
-	new_block->next	   = nullptr;
-	new_block->bytes   = block->bytes - bytes;
-	block->bytes	   = bytes;
-	block->next		   = new_block;
+	new_block->bytes   = block->bytes - bytes - sizeof(BlockHeader);
 
-	// TODO: Merge new block with next if free
+	ASSERT(new_block->bytes > 0);
+
+	if (block->next != nullptr) {
+		block->next->prev = new_block;
+	}
+
+	new_block->next = block->next;
+	new_block->prev = block;
+	block->bytes	= bytes;
+	block->next		= new_block;
 
 	return get_block_data_addr(block);
-
-	/*
-	auto frame = kernel.pmem->request_frame();
-	// ASSERT(frame == nullptr);
-	kernel.paging->allocate_page(frame, frame);
-
-	size total_size	   = sizeof(AllocedHeader) + bytes;
-	auto header		   = static_cast<AllocedHeader *>(frame);
-	auto alloced_block = frame + sizeof(AllocedHeader);
-	kprintf("%d\n", total_size);
-	kprintf("%p\n", alloced_block);
-	kprintf("%p\n", header);
-
-	return alloced_block;
-	*/
 }
 
 void Heap::free(void *ptr) {
 	if (ptr == nullptr)
 		return;
 
-	auto block	   = static_cast<BlockHeader *>(ptr - sizeof(BlockHeader));
+	auto block	   = reinterpret_cast<BlockHeader *>((u8 *) ptr - sizeof(BlockHeader));
 	block->is_free = true;
 
 	// Merge with next block (if blocks are contiguous):

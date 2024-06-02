@@ -24,8 +24,12 @@
 
 namespace acpi {
 
-enum Version { VER_1 = 0, VER_2 = 2, UNKNOWN = 10 };
-constexpr char *RSDP_SIG = "RSD PTR ";
+enum Version {
+	VER_1	= 0,
+	VER_2	= 2,
+	UNKNOWN = 10
+};
+constexpr char const *RSDP_SIG = "RSD PTR ";
 
 // ACP, Table 5.3
 struct __attribute__((packed)) RSDP {
@@ -55,9 +59,9 @@ bool verify_rsdp();
 namespace acpi::sdt {
 
 // All available signatures: ACP, Table 5.5 and 5.6
-constexpr char *HPET_SIG = "HPET";
-constexpr char *MADT_SIG = "APIC";
-constexpr char *RSDT_SIG = "RSDT";
+constexpr char const *HPET_SIG = "HPET";
+constexpr char const *MADT_SIG = "APIC";
+constexpr char const *RSDT_SIG = "RSDT";
 
 // ACP, Table 5.4
 struct __attribute__((packed)) Header {
