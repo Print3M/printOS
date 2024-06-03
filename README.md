@@ -35,7 +35,8 @@ Tool chain: `./recompile.sh && ./build-img.sh && ./run.sh`
 - [x] ACPI support
 - [X] Local APIC and I/O APIC support
 - [X] High Precision Event Timer (HPET): one-shot and periodic mode
-- [ ] Heap (kmalloc)
+- [X] Heap (kmalloc & free)
+- [ ] PS/2 driver (keyboard support)
 - [ ] All x86 exceptions
 - [ ] Uniprocessor multitasking
 - [ ] User mode

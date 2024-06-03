@@ -17,11 +17,11 @@ Heap::Heap() {
 	block->next	   = nullptr;
 	block->prev	   = nullptr;
 	block->bytes   = PagingConsts::PAGE_SZ - sizeof(BlockHeader);
-	this->__blocks = block;
+	this->_blocks = block;
 }
 
-BlockHeader *Heap::__find_free_block(size bytes) {
-	auto block = this->__blocks;
+BlockHeader *Heap::_find_free_block(size bytes) {
+	auto block = this->_blocks;
 	ASSERT(block != nullptr);
 
 	do {
@@ -54,8 +54,8 @@ inline bool are_blocks_contiguous(BlockHeader *block, BlockHeader *next_block) {
 	return reinterpret_cast<BlockHeader *>(addr) == next_block;
 }
 
-BlockHeader *Heap::__find_block_close_before_addr(void *addr) {
-	auto block				= this->__blocks;
+BlockHeader *Heap::_find_block_close_before_addr(void *addr) {
+	auto block				= this->_blocks;
 	size current_block_addr = 0;
 	size next_block_addr	= 0;
 	size find_block_addr	= reinterpret_cast<size>(addr);
@@ -84,7 +84,7 @@ BlockHeader *Heap::__find_block_close_before_addr(void *addr) {
 
 void *Heap::malloc(size bytes) {
 	ASSERT(bytes > 0);
-	auto block = this->__find_free_block(bytes);
+	auto block = this->_find_free_block(bytes);
 
 	// No sufficient free block have been found.
 	// Allocate new pages, create new block and add it to linked-list of blocks.
@@ -100,7 +100,7 @@ void *Heap::malloc(size bytes) {
 		block			 = reinterpret_cast<BlockHeader *>(init_block);
 		block->bytes	 = (pages * PagingConsts::PAGE_SZ) - sizeof(BlockHeader);
 		block->is_free	 = true;
-		auto prev_block	 = this->__find_block_close_before_addr(static_cast<void *>(block));
+		auto prev_block	 = this->_find_block_close_before_addr(static_cast<void *>(block));
 		block->next		 = prev_block->next;
 		block->prev		 = prev_block;
 		prev_block->next = block;
@@ -109,7 +109,7 @@ void *Heap::malloc(size bytes) {
 			block->next->prev = block;
 		}
 
-		block = this->__find_free_block(bytes);
+		block = this->_find_free_block(bytes);
 		ASSERT(block != nullptr);
 	}
 
@@ -186,7 +186,7 @@ void Heap::free(void *ptr) {
 }
 
 HeapStats Heap::get_heap_stats() {
-	auto block		= this->__blocks;
+	auto block		= this->_blocks;
 	HeapStats stats = {
 		.all_blocks		  = 0,
 		.free_blocks	  = 0,

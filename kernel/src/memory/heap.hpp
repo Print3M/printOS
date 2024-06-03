@@ -22,7 +22,7 @@ struct HeapStats {
 class Heap {
   private:
 	// Double-linked-list of allocated blocks
-	BlockHeader *__blocks = nullptr;
+	BlockHeader *_blocks = nullptr;
 
   public:
 	Heap();
@@ -31,7 +31,7 @@ class Heap {
 	HeapStats get_heap_stats();
 
   private:
-	void __free_block();
-	BlockHeader *__find_free_block(size bytes);
-	BlockHeader *__find_block_close_before_addr(void *addr);
+	void _free_block();
+	BlockHeader *_find_free_block(size bytes);
+	BlockHeader *_find_block_close_before_addr(void *addr);
 };

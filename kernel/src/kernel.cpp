@@ -146,6 +146,9 @@ extern "C" void _start(BootloaderData *bd) {
 	ioapic::init();
 	lapic::init();
 
+	/*
+		Heap (Dynamic Allocation)
+	*/
 	auto heap	= Heap();
 	kernel.heap = &heap;
 
@@ -194,6 +197,13 @@ extern "C" void _start(BootloaderData *bd) {
 			hdr->next->bytes,
 			hdr->prev->bytes,
 			sizeof(BlockHeader));
+
+	cpu::outb(0x64, 0xAA);
+	auto resp = cpu::inb(0x60);
+	kprintf("%p\n", resp);
+	cpu::outb(0x64, 0xAB);
+	resp = cpu::inb(0x60);
+	kprintf("%p\n", resp);
 
 	/*
 		Main timer

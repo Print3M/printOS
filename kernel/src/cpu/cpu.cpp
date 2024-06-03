@@ -68,7 +68,7 @@ void get_info(Info &info) {
 	_get_cpu_brand(info.brand);
 
 	// Get CPU technical info
-	info.logical_cores = (ebx >> 16) & 0xff;
+	info.logical_cores	= (ebx >> 16) & 0xff;
 	info.hyperthreading = test_bit(edx, 28);
 
 	get_cpuid(0x80000008, NULL, NULL, &ecx, NULL);
@@ -101,4 +101,4 @@ State check_state() {
 	return State::SUCCESS;
 }
 
-} // namespace cpu
+}; // namespace cpu
