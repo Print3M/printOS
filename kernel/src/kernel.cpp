@@ -205,12 +205,6 @@ extern "C" void _start(BootloaderData *bd) {
 	resp = cpu::inb(0x60);
 	kprintf("%p\n", resp);
 
-	kprintf("FB: %p\n", kernel.framebuffer->get_fb_addr());
-	kprintf("DB: %p\n", kernel.framebuffer->get_double_fb_addr());
-	kernel.framebuffer->init_double_fb();
-	kprintf("FB: %p\n", kernel.framebuffer->get_fb_addr());
-	kprintf("DB: %p\n", kernel.framebuffer->get_double_fb_addr());
-
 	/*
 		Main timer
 	hpet::init();

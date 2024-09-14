@@ -40,6 +40,7 @@ Framebuffer *get_framebuffer() {
 }
 
 void *allocate_double_framebuffer(UINT64 size) {
+	// Allocate memory for double-buffering of framebuffer
 	void *buffer	  = NULL;
 	EFI_STATUS status = BS->AllocatePool(EfiLoaderData, size, (void **) &buffer);
 	if (status != EFI_SUCCESS) {

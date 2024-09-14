@@ -106,4 +106,6 @@ void Console::print(char *str) {
 		this->print(*str);
 		str++;
 	}
+
+	this->_framebuffer.draw();
 }

@@ -1,10 +1,6 @@
 #pragma once
 #include <libc/stdint.hpp>
 
-/*
-	TODO: Implement double buffer using bootloader allocation.
-*/
-
 struct __attribute__((packed)) FramebufferData {
 	void *base_addr;
 	void *double_buffer;
@@ -24,13 +20,6 @@ struct Glyph {
 	u32 fg_color;
 	u32 bg_color;
 };
-
-constexpr u8 BYTES_PER_PX		  = 4;
-constexpr size DOUBLE_BUFFER_SIZE = 1920 * 1080 * BYTES_PER_PX;
-/*
-	IMPORTANT: Double-buffer
-
-*/
 
 class Framebuffer {
   private:
@@ -56,9 +45,5 @@ class Framebuffer {
 	void print_glyph(Glyph &glyph);
 	void *get_fb_addr();
 	void *get_double_fb_addr();
-	void init_double_fb();
 	void draw();
-
-  private:
-	inline void *_get_base_addr();
 };

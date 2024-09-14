@@ -16,24 +16,11 @@ Framebuffer::Framebuffer(FramebufferData &data) {
 	ASSERT(this->__fb_addr != nullptr);
 }
 
-inline void *Framebuffer::_get_base_addr() {
-	/*
-		If there is a double buffer initialized, use double buffer.
-		Otherwise, use framebuffer directly.
-	*/
-	if (this->__double_fb_addr != nullptr) [[likely]] {
-		return this->__double_fb_addr;
-	} else [[unlikely]] {
-		return this->__fb_addr;
-	}
-}
-
 void Framebuffer::set_pixel(u32 x, u32 y, u64 color) {
 	// Write :color into calculated framebuffer address
 	// address = framebuffer's base address + y offset (from base adress) + x offset (from y)
-	void *base = this->_get_base_addr();
-	u64 addr   = reinterpret_cast<u64>(base) + (y * this->_px_per_scan * this->_b_per_px) +
-			   (x * this->_b_per_px);
+	u64 addr = reinterpret_cast<u64>(this->__double_fb_addr) +
+			   (y * this->_px_per_scan * this->_b_per_px) + (x * this->_b_per_px);
 	u64 *pixel = reinterpret_cast<u64 *>(addr);
 	*pixel	   = color;
 }
@@ -66,8 +53,6 @@ void Framebuffer::print_glyph(Glyph &glyph) {
 		}
 		glyph.bitmap++;
 	}
-
-	this->draw();
 }
 
 void *Framebuffer::get_fb_addr() {
@@ -80,24 +65,12 @@ void *Framebuffer::get_double_fb_addr() {
 	return this->__double_fb_addr;
 }
 
-void Framebuffer::init_double_fb() {
-	/*
-		Double buffer must be allocated after heap structures initialization.
-	*/
-	ASSERT(this->__double_fb_addr == nullptr);
-
-	this->__double_fb_addr = kernel.heap->malloc(this->_b_size);
-	// memset(this->__double_fb_addr, 0x0, this->b_size);
-
-	ASSERT(this->__double_fb_addr != nullptr);
-}
-
 void Framebuffer::draw() {
 	/*
 		If a double-buffer is initialized, copy its memory to the framebuffer.
 		Otherwise, the framebuffer was used directly and do nothing here.
 	*/
-	if (this->__double_fb_addr != nullptr) [[likely]] {
-		memcpy(this->__fb_addr, this->__double_fb_addr, this->_b_size);
-	}
+
+	// TODO: It's slow :/ Why? Maybe inefficient memcpy implementation
+	memcpy(this->__fb_addr, this->__double_fb_addr, this->_b_size);
 }

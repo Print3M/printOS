@@ -24,7 +24,7 @@ Tool chain: `./recompile.sh && ./build-img.sh && ./run.sh`
 ### Features
 
 - [x] CPUID - state and features checking
-- [x] Framebuffer driver, writing output, colors
+- [x] Framebuffer (double-buffering) driver, writing output, colors
 - [x] Basic read-only console
 - [x] GDT - flat model
 - [x] Physical memory allocator
