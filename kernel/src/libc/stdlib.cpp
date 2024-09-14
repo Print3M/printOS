@@ -19,8 +19,8 @@ char *str_reverse(char *str, int len) {
 
 	for (int i = 0; i < (len / 2); i++) {
 		// Switch two chars
-		temp = str[i];
-		str[i] = str[len - i - 1];
+		temp			 = str[i];
+		str[i]			 = str[len - i - 1];
 		str[len - i - 1] = temp;
 	}
 
@@ -28,8 +28,8 @@ char *str_reverse(char *str, int len) {
 }
 
 void *memcpy(void *dest, void *src, size_t n) {
-	uint8_t *d = (uint8_t *) dest;
-	uint8_t *s = (uint8_t *) src;
+	volatile uint8_t *d = (uint8_t *) dest;
+	volatile uint8_t *s = (uint8_t *) src;
 
 	while (n--) {
 		*d++ = *s++;
@@ -60,15 +60,15 @@ char *itoa(u64 num, char *buf, u8 base) {
 	/* Handle 0 explicitely, otherwise empty string is printed for 0 */
 	if (num == 0) {
 		buf[i++] = '0';
-		buf[i] = '\0';
+		buf[i]	 = '\0';
 		return buf;
 	}
 
 	// Process individual digits
 	while (num != 0) {
-		int rem = num % base;
+		int rem	 = num % base;
 		buf[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
-		num = num / base;
+		num		 = num / base;
 	}
 
 	buf[i] = '\0'; // Append string terminator

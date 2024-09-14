@@ -1,5 +1,5 @@
-/* 
-    GOP stands for Graphic Output Protocol (UEFI feature)
+/*
+	GOP stands for Graphic Output Protocol (UEFI feature)
 */
 #pragma once
 #include <efi.h>
@@ -8,6 +8,7 @@
 
 typedef struct {
 	void *base_address;
+	void *double_buffer;
 	UINT64 buffer_size;
 	UINT16 width;
 	UINT16 height;
@@ -16,4 +17,4 @@ typedef struct {
 } Framebuffer;
 
 Framebuffer *get_framebuffer();
-
+void *allocate_double_framebuffer(UINT64 size);

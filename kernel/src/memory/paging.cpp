@@ -46,7 +46,7 @@ PageIndexer::PageIndexer(u64 vaddr) {
 	this->__pd = vaddr & BITS_9_MASK;	// PageDirectory entry
 	vaddr >>= 9;						// -
 	this->__pdpt = vaddr & BITS_9_MASK; // PageDirectoryPointerTable entry
-	vaddr >>= 9;						// - 
+	vaddr >>= 9;						// -
 	this->__pml4 = vaddr & BITS_9_MASK; // PageMapLevel4 entry
 }
 
@@ -193,7 +193,7 @@ void Paging::init() {
 	}
 
 	// Identity paging for framebuffer
-	this->__identity_paging(kernel.framebuffer->get_address(), kernel.framebuffer->get_size());
+	this->__identity_paging(kernel.framebuffer->get_fb_addr(), kernel.framebuffer->b_size);
 
 	// Identity paging for Local APIC
 	this->__identity_paging(reinterpret_cast<void *>(kernel.acpi_tables.madt->lapic_addr), 4096);

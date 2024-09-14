@@ -15,7 +15,7 @@ EFI_STATUS efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
 
 	Print(L"[*] Starting bootloader... \n\r");
 
-	EFI_FILE *root_dir = NULL;
+	EFI_FILE *root_dir	  = NULL;
 	EFI_FILE *kernel_file = load_file(root_dir, L"kernel.elf", image_handle);
 	if (kernel_file == NULL) {
 		print_err(L"Loading kernel file error");
@@ -43,6 +43,13 @@ EFI_STATUS efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
 		return EFI_LOAD_ERROR;
 	}
 	Print(L"[+] Framebuffer initialized successfully \n\r");
+
+	framebuffer->double_buffer = allocate_double_framebuffer(framebuffer->buffer_size);
+	if (framebuffer->double_buffer == NULL) {
+		print_err(L"Double framebuffer allocation error");
+		return EFI_LOAD_ERROR;
+	}
+	Print(L"[+] Double framebuffer allocated successfully \n\r");
 
 	void *acpi_rsdp = get_rsdp();
 	if (acpi_rsdp == NULL) {

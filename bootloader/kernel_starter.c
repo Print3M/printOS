@@ -103,10 +103,12 @@ void start_kernel(EFI_HANDLE image_handle,
 	// NOTE: Now you are not able to call EFI functions!
 	// !!!
 
-	BootloaderData bootloader_data = {.framebuffer = framebuffer,
-									  .font		   = psf_font,
-									  .memory	   = memory_data,
-									  .acpi_rsdp   = acpi_rsdp};
+	BootloaderData bootloader_data = {
+		.framebuffer = framebuffer,
+		.font		 = psf_font,
+		.memory		 = memory_data,
+		.acpi_rsdp	 = acpi_rsdp,
+	};
 
 	// Jump to kernel function
 	((kernel) kernel_addr)(&bootloader_data);

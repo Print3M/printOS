@@ -80,7 +80,7 @@ void init() {
 	entry.intvec	  = Interrupt::TIMER;
 	entry.delmod	  = FIXED;
 	entry.destmod	  = PHYSICAL;
-	entry.intpol	  = Polarity::HIGH;
+	entry.intpol	  = HIGH;
 	entry.int_mask	  = 0;
 	entry.trigmod	  = TriggerMode::EDGE;
 	entry.destination = 0;

@@ -11,12 +11,6 @@
 #include <libc/stdint.hpp>
 
 
-namespace ps2 {
-
-
-
-}; // namespace ps2
-
 namespace ps2::controller {
 
 u8 test();

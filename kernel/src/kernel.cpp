@@ -61,7 +61,7 @@ extern "C" void _start(BootloaderData *bd) {
 	*/
 	cpu::get_info(devices.cpu);
 	auto cpu_s = cpu::check_state();
-	if (cpu_s != cpu::SUCCESS) {
+	if (cpu_s != cpu::State::SUCCESS) {
 		kprintf("[-] CPU state error: %d", cpu_s);
 	} else {
 		kprint_succ("CPU state correct");
@@ -204,6 +204,12 @@ extern "C" void _start(BootloaderData *bd) {
 	cpu::outb(0x64, 0xAB);
 	resp = cpu::inb(0x60);
 	kprintf("%p\n", resp);
+
+	kprintf("FB: %p\n", kernel.framebuffer->get_fb_addr());
+	kprintf("DB: %p\n", kernel.framebuffer->get_double_fb_addr());
+	kernel.framebuffer->init_double_fb();
+	kprintf("FB: %p\n", kernel.framebuffer->get_fb_addr());
+	kprintf("DB: %p\n", kernel.framebuffer->get_double_fb_addr());
 
 	/*
 		Main timer

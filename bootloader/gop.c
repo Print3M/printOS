@@ -29,12 +29,23 @@ Framebuffer *get_framebuffer() {
 		return NULL;
 	}
 
-	framebuffer->base_address = (void *) gop->Mode->FrameBufferBase;
-	framebuffer->buffer_size = gop->Mode->FrameBufferSize;
-	framebuffer->width = gop->Mode->Info->HorizontalResolution;
-	framebuffer->height = gop->Mode->Info->VerticalResolution;
+	framebuffer->base_address		 = (void *) gop->Mode->FrameBufferBase;
+	framebuffer->buffer_size		 = gop->Mode->FrameBufferSize;
+	framebuffer->width				 = gop->Mode->Info->HorizontalResolution;
+	framebuffer->height				 = gop->Mode->Info->VerticalResolution;
 	framebuffer->pixels_per_scanline = gop->Mode->Info->PixelsPerScanLine;
-	framebuffer->bytes_per_pixel = BYTES_PER_PIXEL;
+	framebuffer->bytes_per_pixel	 = BYTES_PER_PIXEL;
 
 	return framebuffer;
+}
+
+void *allocate_double_framebuffer(UINT64 size) {
+	void *buffer	  = NULL;
+	EFI_STATUS status = BS->AllocatePool(EfiLoaderData, size, (void **) &buffer);
+	if (status != EFI_SUCCESS) {
+		print_efi_err(L"Allocating memory for double framebuffer failed", status);
+		return NULL;
+	}
+
+	return buffer;
 }

@@ -16,4 +16,4 @@ class KLog {
 	KLog();
 	const char *get_entry(size id);
 	void add_entry(KLogType type, char *msg);
-}
+};
