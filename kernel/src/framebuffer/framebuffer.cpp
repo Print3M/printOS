@@ -16,12 +16,18 @@ Framebuffer::Framebuffer(FramebufferData &data) {
 	ASSERT(this->__fb_addr != nullptr);
 }
 
-void Framebuffer::set_pixel(u32 x, u32 y, u64 color) {
-	// Write :color into calculated framebuffer address
-	// address = framebuffer's base address + y offset (from base adress) + x offset (from y)
+inline void *Framebuffer::get_pixel_addr(u32 x, u32 y) {
+	// Calculate framebuffer address using :x and :y coordinates
+	// addr = base addr + y offset (from base addr) + x offset (from y)
 	u64 addr = reinterpret_cast<u64>(this->__double_fb_addr) +
 			   (y * this->_px_per_scan * this->_b_per_px) + (x * this->_b_per_px);
-	u64 *pixel = reinterpret_cast<u64 *>(addr);
+
+	return reinterpret_cast<void *>(addr);
+}
+
+void Framebuffer::set_pixel(u32 x, u32 y, u64 color) {
+	// Write :color into calculated framebuffer address
+	auto pixel = static_cast<u64 *>(this->get_pixel_addr(x, y));
 	*pixel	   = color;
 }
 
@@ -32,8 +38,6 @@ void Framebuffer::set_all_pixels(u64 color) {
 			this->set_pixel(x, y, color);
 		}
 	}
-
-	this->draw();
 }
 
 void Framebuffer::print_glyph(Glyph &glyph) {
@@ -49,7 +53,7 @@ void Framebuffer::print_glyph(Glyph &glyph) {
 				// Background color
 				color = glyph.bg_color;
 			}
-			this->set_pixel(x + glyph.x_off, y + glyph.y_off, color);
+			this->set_pixel(glyph.x_off + x, glyph.y_off + y, color);
 		}
 		glyph.bitmap++;
 	}

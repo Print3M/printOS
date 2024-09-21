@@ -3,10 +3,6 @@
 #include <framebuffer/framebuffer.hpp>
 #include <libc/stdint.hpp>
 
-// TODO: Remove
-#define CURSOR_MAX_LINES   37
-#define CURSOR_MAX_COLUMNS 100
-
 struct __attribute__((packed)) PsfHeader {
 	u8 magic[2];
 	u8 mode;
@@ -20,28 +16,30 @@ struct ConsoleFont {
 	void *glyph_buffer;
 };
 
-enum ConsoleDefaults {
-	max_col = 100,
-	max_row = 37,
+enum class ConsoleDefault {
+	max_col	   = 100,
+	max_row	   = 37,
 	tab_spaces = 4,
-	fg = WHITE,
-	bg = BLACK,
+	fg		   = WHITE,
+	bg		   = BLACK,
 };
 
 class ConsoleCursor {
   private:
-	u16 _row = 0;
-	u16 _col = 0;
-	u64 _fg = ConsoleDefaults::fg;
-	u64 _bg = ConsoleDefaults::bg;
-	u16 _max_col = ConsoleDefaults::max_col;
-	u16 _max_row = ConsoleDefaults::max_row;
+	u16 _row	 = 0;
+	u16 _col	 = 0;
+	u64 _fg		 = (u64) ConsoleDefault::fg;
+	u64 _bg		 = (u64) ConsoleDefault::bg;
+	u16 _max_col = (u16) ConsoleDefault::max_col;
+	u16 _max_row = (u16) ConsoleDefault::max_row;
 
   public:
-	const u16 &row = _row;
-	const u16 &col = _col;
-	const u64 &fg = _fg;
-	const u64 &bg = _bg;
+	const u16 &row	   = _row;
+	const u16 &col	   = _col;
+	const u64 &fg	   = _fg;
+	const u64 &bg	   = _bg;
+	const u16 &max_col = _max_col;
+	const u16 &max_row = _max_row;
 
   public:
 	ConsoleCursor();
@@ -62,9 +60,18 @@ class Console {
   public:
 	ConsoleCursor cursor = ConsoleCursor();
 
+  private:
+	void _print_char(char chr);
+	void _scroll_down();
+
   public:
+	/*
+		All public methods of Console class should execute
+		framebuffer.draw() method implicitly. It's not
+		guaranteed in case of private methods!
+	*/
 	Console(ConsoleFont &font, Framebuffer &framebuffer);
 	void print(char *str);
-	void print(char chr);
+	void clear_line(u16 line);
 	void clear();
 };

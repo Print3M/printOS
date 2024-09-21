@@ -21,12 +21,12 @@ void IDT::add_int(Gate gate, Interrupt index, void (*handler)(InterruptFrame *))
 		Add interrupt handler into IDT.
 		NOTE: It doesn't check if the table entry is already occupied.
 	*/
-	auto entry = &idt[index];
-	entry->present = 1;
-	entry->gate_type = gate;
-	entry->segment_selector = gdt::SegmentSelector::KERNEL_CODE;
+	auto entry				= &idt[index];
+	entry->present			= 1;
+	entry->gate_type		= gate;
+	entry->segment_selector = (u16) gdt::SegmentSelector::KERNEL_CODE;
 
-	u64 offset = (u64) handler;
+	u64 offset	   = (u64) handler;
 	entry->offset1 = (u16) (offset & 0xffff);
 	offset >>= 16;
 	entry->offset2 = (u16) (offset & 0xffff);

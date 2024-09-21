@@ -30,7 +30,7 @@ class Framebuffer {
 	u8 _b_per_px;	  // Bytes per pixels
 
 	void *__fb_addr;				  // Base memory address of framebuffer
-	void *__double_fb_addr = nullptr; // Double framebuffer
+	void *__double_fb_addr; // Double framebuffer
 
   public:
 	const u16 &width   = _width;
@@ -40,6 +40,7 @@ class Framebuffer {
 
   public:
 	Framebuffer(FramebufferData &data);
+	inline void *get_pixel_addr(u32 x, u32 y);
 	void set_pixel(u32 x, u32 y, u64 color);
 	void set_all_pixels(u64 color);
 	void print_glyph(Glyph &glyph);

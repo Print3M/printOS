@@ -18,11 +18,9 @@
 
 namespace hpet::comparator {
 
-enum Const {
-	NANOSECONDS_PER_TICK = 100,
-	BLOCK_SZ			 = 4 * 8, // 4 * 64-bit registers
-	FIRST_OFF			 = 0x100
-};
+constexpr u32 NANOSECONDS_PER_TICK = 100;
+constexpr size BLOCK_SZ			   = 4 * 8; // 4 * 64-bit registers
+constexpr size FIRST_OFF		   = 0x100;
 
 enum Type {
 	ONE_SHOT = 0,

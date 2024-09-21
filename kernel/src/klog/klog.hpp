@@ -4,7 +4,12 @@
 #pragma once
 #include <libc/stdint.hpp>
 
-enum KLogType { info, debug, error, panic };
+enum class KLogType {
+	info,
+	debug,
+	error,
+	panic,
+};
 
 class KLog {
   private:

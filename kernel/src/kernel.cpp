@@ -85,10 +85,10 @@ extern "C" void _start(BootloaderData *bd) {
 		ACPI
 	*/
 	switch (acpi::get_version()) {
-		case acpi::VER_1:
+		case acpi::Version::VER_1:
 			kprint_succ("ACPI 1.0 detected");
 			break;
-		case acpi::VER_2:
+		case acpi::Version::VER_2:
 			kprint_succ("ACPI 2.0 detected");
 			break;
 		default:

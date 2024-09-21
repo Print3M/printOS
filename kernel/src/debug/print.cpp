@@ -24,17 +24,17 @@ void kprint_mem_hex(u8 *ptr, u16 n_bytes) {
 
 		if (str_len(str) == 1) {
 			// Zero alignment
-			kernel.console->print('0');
+			// kernel.console->print('0');
 		}
 
-		kernel.console->print(str);
-		kernel.console->print(' ');
+		// kernel.console->print(str);
+		// kernel.console->print(' ');
 		ptr--;
 		n_bytes--;
 		line_c++;
 	}
 
-	kernel.console->print('\n');
+	// kernel.console->print('\n');
 }
 
 void kprint_mem_bin(u8 *ptr, u16 n_bytes) {
@@ -50,16 +50,16 @@ void kprint_mem_bin(u8 *ptr, u16 n_bytes) {
 		// Zero alignment
 		u8 len = str_len(str);
 		while (len++ < 8) {
-			kernel.console->print('0');
+			// kernel.console->print('0');
 		}
 
 		kernel.console->print(str);
-		kernel.console->print(' ');
+		// kernel.console->print(' ');
 		ptr--;
 		n_bytes--;
 	}
 
-	kernel.console->print('\n');
+	// kernel.console->print('\n');
 }
 
 void kprint_mem_ascii(u8 *ptr, u16 n_bytes) {
@@ -68,10 +68,10 @@ void kprint_mem_ascii(u8 *ptr, u16 n_bytes) {
 	ptr += n_bytes - 1;
 
 	while (n_bytes > 0) {
-		kernel.console->print(mmio::read8((void *) ptr));
+		// kernel.console->print(mmio::read8((void *) ptr));
 		ptr--;
 		n_bytes--;
 	}
 
-	kernel.console->print('\n');
+	// kernel.console->print('\n');
 }

@@ -24,7 +24,7 @@
 
 namespace acpi {
 
-enum Version {
+enum class Version {
 	VER_1	= 0,
 	VER_2	= 2,
 	UNKNOWN = 10

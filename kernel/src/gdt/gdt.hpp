@@ -18,7 +18,12 @@
 
 namespace gdt {
 
-enum SegmentSelector { KERNEL_CODE = 8, KERNEL_DATA = 16, USER_CODE = 24, USER_DATA = 32 };
+enum class SegmentSelector {
+	KERNEL_CODE = 8,
+	KERNEL_DATA = 16,
+	USER_CODE	= 24,
+	USER_DATA	= 32,
+};
 
 struct __attribute__((packed)) GDTR {
 	u16 size;

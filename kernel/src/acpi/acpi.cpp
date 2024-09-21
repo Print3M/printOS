@@ -9,10 +9,10 @@ namespace acpi {
 Version get_version() {
 	auto rsdp = kernel.acpi_rsdp;
 
-	if (rsdp->revision == Version::VER_1) {
+	if (rsdp->revision == (u8) Version::VER_1) {
 		return Version::VER_1;
 	}
-	if (rsdp->revision == Version::VER_2) {
+	if (rsdp->revision == (u8) Version::VER_2) {
 		return Version::VER_2;
 	}
 	return Version::UNKNOWN;
@@ -52,8 +52,8 @@ Header *get_header(const char *signature) {
 		See all possible signatures: ACPI Spec., Table 5.5, Table 5.6
 	*/
 
-	auto rsdp = kernel.acpi_rsdp;
-	auto rsdt = (RSDT *) rsdp->rsdt_addr;
+	auto rsdp	= kernel.acpi_rsdp;
+	auto rsdt	= (RSDT *) rsdp->rsdt_addr;
 	Header *sdt = nullptr;
 
 	// Calculate size of sdt_table (total amount of 32-bit addresses)

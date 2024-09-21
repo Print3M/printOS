@@ -18,7 +18,7 @@ struct MemoryData {
 	size entries;
 };
 
-enum EfiMemoryType {
+enum class EfiMemoryType {
 	EFI_RESERVED_MEMORY_TYPE,
 	EFI_LOADER_CODE,
 	EFI_LOADER_DATA,

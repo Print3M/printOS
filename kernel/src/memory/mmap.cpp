@@ -35,7 +35,7 @@ size MemoryMap::get_largest_free_seg(void **mem_seg) {
 	for (u64 i = 0; i < kernel.memory->entries; i++) {
 		auto desc = kernel.mmap->get_desc(i);
 
-		if (desc->type == EFI_CONVENTIONAL_MEMORY) {
+		if (desc->type == (u32) EfiMemoryType::EFI_CONVENTIONAL_MEMORY) {
 			size seg_sz = desc->pages * PMemConsts::FRAME_SZ;
 
 			if (seg_sz > max_sz) {
@@ -73,7 +73,7 @@ void MemoryMap::dbg_print_mmap() {
 bool MemoryMap::is_usable_memory(EfiMMapDesc *desc) {
 	// Check if EFI memory segment can be used by kernel. Only these memory
 	// segments can be used as standard RAM!
-	return (desc->type == EfiMemoryType::EFI_CONVENTIONAL_MEMORY ||
-			desc->type == EfiMemoryType::EFI_BOOT_SERVICES_CODE ||
-			desc->type == EfiMemoryType::EFI_BOOT_SERVICES_DATA);
+	return (desc->type == (u32) EfiMemoryType::EFI_CONVENTIONAL_MEMORY ||
+			desc->type == (u32) EfiMemoryType::EFI_BOOT_SERVICES_CODE ||
+			desc->type == (u32) EfiMemoryType::EFI_BOOT_SERVICES_DATA);
 }
