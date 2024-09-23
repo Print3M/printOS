@@ -1,10 +1,15 @@
 #include <acpi/apic/lapic.hpp>
 #include <acpi/hpet/comparator.hpp>
 #include <acpi/hpet/hpet.hpp>
+#include <drivers/ps2.hpp>
 #include <idt/idt.hpp>
 #include <idt/interrupts.hpp>
+#include <kernel.hpp>
+#include <kutils/bits.hpp>
 #include <kutils/console.hpp>
 #include <libc/stdint.hpp>
+
+#define INTERRUPT(v) __asm__ volatile("int %0" ::"N"(v));
 
 void interrupt(Interrupt isr_index) {
 	/*
@@ -14,13 +19,16 @@ void interrupt(Interrupt isr_index) {
 	*/
 	switch (isr_index) {
 		case Interrupt::DIVISION_BY_ZERO:
-			__asm__ volatile("int %0" ::"N"(Interrupt::DIVISION_BY_ZERO));
+			INTERRUPT(Interrupt::DIVISION_BY_ZERO);
 			break;
 		case Interrupt::PAGE_FAULT:
-			__asm__ volatile("int %0" ::"N"(Interrupt::PAGE_FAULT));
+			INTERRUPT(Interrupt::PAGE_FAULT);
+			break;
+		case Interrupt::KEYBOARD:
+			INTERRUPT(Interrupt::KEYBOARD);
 			break;
 		case Interrupt::SPURIOUS:
-			__asm__ volatile("int %0" ::"N"(Interrupt::SPURIOUS));
+			INTERRUPT(Interrupt::SPURIOUS);
 		default:
 			break;
 	}
@@ -50,6 +58,16 @@ __attribute__((interrupt)) void timer_handler(InterruptFrame *frame) {
 		secs++;
 	}
 	kprintf("%d.%d\r", secs, ms);
+
+	lapic::write_eoi();
+}
+
+__attribute__((interrupt)) void keyboard_handler(InterruptFrame *frame) {
+	auto chr = kernel.keyboard->read_key();
+
+	if (chr != 0x00) [[likely]] {
+		kernel.console->print(chr);
+	}
 
 	lapic::write_eoi();
 }

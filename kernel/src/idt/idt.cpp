@@ -10,8 +10,9 @@ namespace idt {
 IDT::IDT() {
 	this->add_int(TRAP_GATE, Interrupt::DIVISION_BY_ZERO, &divide_by_zero_handler);
 	this->add_int(INTERRUPT_GATE, Interrupt::PAGE_FAULT, &page_fault_handler);
-	this->add_int(INTERRUPT_GATE, Interrupt::SPURIOUS, &spurious_handler);
 	this->add_int(INTERRUPT_GATE, Interrupt::TIMER, &timer_handler);
+	this->add_int(INTERRUPT_GATE, Interrupt::KEYBOARD, &keyboard_handler);
+	this->add_int(INTERRUPT_GATE, Interrupt::SPURIOUS, &spurious_handler);
 
 	this->__load_idtr();
 }
@@ -19,7 +20,7 @@ IDT::IDT() {
 void IDT::add_int(Gate gate, Interrupt index, void (*handler)(InterruptFrame *)) {
 	/*
 		Add interrupt handler into IDT.
-		NOTE: It doesn't check if the table entry is already occupied.
+		IMPORTANT: It doesn't check if the table entry is already occupied.
 	*/
 	auto entry				= &idt[index];
 	entry->present			= 1;

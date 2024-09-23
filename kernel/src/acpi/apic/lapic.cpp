@@ -69,6 +69,7 @@ u8 get_version() {
 }
 
 void write_eoi() {
+	// End Of Interrupt
 	write_reg(Reg::EOI, 0xff);
 }
 

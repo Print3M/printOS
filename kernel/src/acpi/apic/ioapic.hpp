@@ -47,9 +47,10 @@ enum Reg {
 	IOREDTBL  = 0x10  // R/W
 };
 
-// Numbers
+// Number of IRQ (try to follow Standard ISA IRQs)
 enum IRQ {
-	HPET = 13
+	HPET	 = 0,
+	KEYBOARD = 1,
 };
 
 // IOA, 3.2.4. I/O Redirection Table Registers (table)

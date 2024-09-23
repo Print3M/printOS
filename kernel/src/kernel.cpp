@@ -5,6 +5,7 @@
 #include <acpi/hpet/hpet.hpp>
 #include <console/console.hpp>
 #include <cpu/cpu.hpp>
+#include <drivers/ps2.hpp>
 #include <framebuffer/framebuffer.hpp>
 #include <gdt/gdt.hpp>
 #include <idt/idt.hpp>
@@ -27,6 +28,12 @@ extern "C" void _start(BootloaderData *bd) {
 
 	kernel.stack	 = static_cast<void *>(bd);
 	kernel.acpi_rsdp = (acpi::RSDP *) bd->acpi_rsdp;
+
+	/*
+		Keyboard
+	*/
+	auto keyboard	= Keyboard();
+	kernel.keyboard = &keyboard;
 
 	/*
 		Memory map
@@ -80,6 +87,8 @@ extern "C" void _start(BootloaderData *bd) {
 	auto idt   = idt::IDT();
 	kernel.idt = &idt;
 	kprint_succ("IDT initialization success");
+
+	ASSERT(kernel.keyboard != nullptr);
 
 	/*
 		ACPI
@@ -204,6 +213,16 @@ extern "C" void _start(BootloaderData *bd) {
 	cpu::outb(0x64, 0xAB);
 	resp = cpu::inb(0x60);
 	kprintf("%p\n", resp);
+
+	ps2::port_1::enable();
+
+	/*
+	kprintf("PS/2 Controller Test: %d\n", ps2::controller::test());
+	kprintf("PS/2 Port 1 Enabled : %d\n", ps2::port_1::is_interrupt_enabled());
+	kprintf("\nPrev-Status: %d\n", ps2::controller::get_status_reg());
+	ps2::controller::set_status_reg(28);
+	kprintf("Next-Status: %d\n", ps2::controller::get_status_reg());
+	*/
 
 	/*
 		Main timer

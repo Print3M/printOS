@@ -3,7 +3,7 @@
 
 namespace cpu {
 
-enum State {
+enum class State {
 	ERROR,
 	SUCCESS,
 	NO_LONG_MODE,
@@ -32,18 +32,19 @@ extern "C" void write_msr(u32 msr_no, u64 value);
 void get_info(Info &info);
 State check_state();
 
-// I/O Ports
 static inline void outb(u16 port, u8 val) {
+	// I/O Port OUT byte
 	__asm__ volatile("outb %b0, %w1" : : "a"(val), "Nd"(port) : "memory");
 }
 
 static inline u8 inb(u16 port) {
+	// I/O Port IN byte
 	u8 ret;
 	__asm__ volatile("inb %w1, %b0" : "=a"(ret) : "Nd"(port) : "memory");
 	return ret;
 }
 
-static inline void io_wait(void) {
+static inline void io_wait() {
 	cpu::outb(0x80, 0);
 }
 

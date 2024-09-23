@@ -4,6 +4,7 @@
 #include <acpi/hpet/hpet.hpp>
 #include <console/console.hpp>
 #include <cpu/cpu.hpp>
+#include <drivers/keyboard.hpp>
 #include <framebuffer/framebuffer.hpp>
 #include <gdt/gdt.hpp>
 #include <idt/idt.hpp>
@@ -45,6 +46,7 @@ struct KernelData {
 	PMem *pmem		   = nullptr;
 	Paging *paging	   = nullptr;
 	Heap *heap		   = nullptr;
+	Keyboard *keyboard = nullptr;
 };
 
 extern DevicesInfo devices;

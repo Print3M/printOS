@@ -21,6 +21,15 @@ void ConsoleCursor::next() {
 	}
 }
 
+void ConsoleCursor::back() {
+	if (this->_col > 0) {
+		this->_col -= 1;
+	} else {
+		this->_col = this->_max_col - 1;
+		this->_row -= 1;
+	}
+}
+
 void ConsoleCursor::cr() {
 	// Carrieg return
 	this->_col = 0;
@@ -83,6 +92,26 @@ void Console::_print_char(char chr) {
 		this->_scroll_down();
 	}
 
+	if (chr >= ASCII_PRINTABLE_MIN && chr <= ASCII_PRINTABLE_MAX) [[likely]] {
+		// Get glyph bitmap ptr
+		int offset		   = chr * this->_font.psf_header->charsize;
+		char *glyph_bitmap = reinterpret_cast<char *>((size) this->_font.glyph_buffer + offset);
+
+		Glyph glyph = {
+			.bitmap	  = glyph_bitmap,
+			.x_off	  = this->cursor.col * this->_font.glyph_width,
+			.y_off	  = this->cursor.row * this->_font.glyph_height,
+			.height	  = this->_font.glyph_height,
+			.width	  = this->_font.glyph_width,
+			.fg_color = this->cursor.fg,
+			.bg_color = this->cursor.bg,
+		};
+		this->_framebuffer.print_glyph(glyph);
+		this->cursor.next();
+
+		return;
+	}
+
 	switch (chr) {
 		case '\n': {
 			this->cursor.lf();
@@ -99,24 +128,18 @@ void Console::_print_char(char chr) {
 			this->cursor.cr();
 			break;
 		}
-		default: {
-			// Get glyph bitmap ptr
-			int offset		   = chr * this->_font.psf_header->charsize;
-			char *glyph_bitmap = reinterpret_cast<char *>((size) this->_font.glyph_buffer + offset);
-
-			Glyph glyph = {
-				.bitmap	  = glyph_bitmap,
-				.x_off	  = this->cursor.col * this->_font.glyph_width,
-				.y_off	  = this->cursor.row * this->_font.glyph_height,
-				.height	  = this->_font.glyph_height,
-				.width	  = this->_font.glyph_width,
-				.fg_color = this->cursor.fg,
-				.bg_color = this->cursor.bg,
-			};
-			this->_framebuffer.print_glyph(glyph);
-			this->cursor.next();
+		case '\b': {
+			this->cursor.back();
+			this->_print_char(' ');
+			this->cursor.back();
+			break;
 		}
 	}
+}
+
+void Console::print(char chr) {
+	this->_print_char(chr);
+	this->_framebuffer.draw();
 }
 
 void Console::print(char *str) {

@@ -9,6 +9,9 @@ struct __attribute__((packed)) PsfHeader {
 	u8 charsize;
 };
 
+constexpr u8 ASCII_PRINTABLE_MIN = 32;
+constexpr u8 ASCII_PRINTABLE_MAX = 127;
+
 struct ConsoleFont {
 	PsfHeader *psf_header;
 	u8 glyph_height;
@@ -44,6 +47,7 @@ class ConsoleCursor {
   public:
 	ConsoleCursor();
 	void next();
+	void back();
 	void gotoxy(u16 x, u16 y);
 	void cr(); // Carriege return
 	void lf(); // Line feed
@@ -72,6 +76,7 @@ class Console {
 	*/
 	Console(ConsoleFont &font, Framebuffer &framebuffer);
 	void print(char *str);
+	void print(char chr);
 	void clear_line(u16 line);
 	void clear();
 };

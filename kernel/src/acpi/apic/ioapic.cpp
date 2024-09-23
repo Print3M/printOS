@@ -16,10 +16,11 @@ void set_iowin(u32 val) {
 }
 
 u32 get_iowin() {
+	// IOA, 3.1.2. I/O Window Register
 	return mmio::read32((void *) ((u64) kernel.acpi_tables.ioapic->io_apic_addr + IOWIN));
 }
 
-u32 IOAPIC_get_id(void) {
+u32 get_id(void) {
 	// IOA, 3.2.1. IOAPIC Identification Register
 	set_ioregsel(IOAPICID);
 	auto iowin = get_iowin();
@@ -75,17 +76,19 @@ RedirEntry get_redir_entry(u8 entry_id) {
 }
 
 void init() {
-	// IRQ1 -> ISR36
 	RedirEntry entry;
-	entry.intvec	  = Interrupt::TIMER;
 	entry.delmod	  = FIXED;
 	entry.destmod	  = PHYSICAL;
 	entry.intpol	  = HIGH;
 	entry.int_mask	  = 0;
-	entry.trigmod	  = TriggerMode::EDGE;
 	entry.destination = 0;
+	entry.trigmod	  = TriggerMode::EDGE;
 
+	entry.intvec = Interrupt::TIMER;
 	set_redir_entry(IRQ::HPET, entry);
+
+	entry.intvec = Interrupt::KEYBOARD;
+	set_redir_entry(IRQ::KEYBOARD, entry);
 }
 
 } // namespace ioapic
